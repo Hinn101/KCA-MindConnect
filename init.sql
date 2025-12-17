@@ -1,0 +1,55 @@
+-- init.sql
+CREATE DATABASE IF NOT EXISTS kca_mindconnect CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE kca_mindconnect;
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  admin_number VARCHAR(50) NOT NULL UNIQUE,
+  email VARCHAR(190) NOT NULL,
+  email_verified TINYINT(1) DEFAULT 0,
+  nickname VARCHAR(50) NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  avatar_json JSON NULL,
+  streak INT DEFAULT 0,
+  last_mood DATE NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS otp_codes (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  code VARCHAR(10) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  expires_at TIMESTAMP NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS rooms (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL
+);
+INSERT IGNORE INTO rooms (id, name) VALUES (1, 'General Support'), (2,'Exam Stress'), (3,'Homesickness');
+CREATE TABLE IF NOT EXISTS messages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  room_id INT NOT NULL,
+  user_id INT NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS moods (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  mood VARCHAR(10) NOT NULL,
+  note VARCHAR(255),
+  created_at DATE NOT NULL,
+  UNIQUE KEY uniq_mood_day (user_id, created_at),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS reports (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  reporter_id INT NOT NULL,
+  reported_user_id INT NOT NULL,
+  reason VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (reported_user_id) REFERENCES users(id) ON DELETE CASCADE
+);
